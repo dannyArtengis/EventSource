@@ -772,7 +772,7 @@
           });
           es.dispatchEvent(event);
           fire(es, es.onerror, event);
-          if (!(event.defaultPrevented || options.ignore401)) {
+          if (!(event.defaultPrevented)) {
             throwError(new Error(message));
           }
         }
