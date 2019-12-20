@@ -691,7 +691,6 @@
   function EventSourcePolyfill(url, options) {
     EventTarget.call(this);
     options = options || {};
-    options.ignore401 = true;
 
     this.onopen = undefined;
     this.onmessage = undefined;
