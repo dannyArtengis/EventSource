@@ -452,7 +452,7 @@
   HeadersPolyfill.prototype.get = function (name) {
     return this._map[toLowerCase(name)];
   };
-  
+
   if (XMLHttpRequest != null && XMLHttpRequest.HEADERS_RECEIVED == null) { // IE < 9
     XMLHttpRequest.HEADERS_RECEIVED = 2;
   }
@@ -629,7 +629,7 @@
     this.target = undefined;
     this.defaultPrevented = false;
   }
-  
+
   Event.prototype.preventDefault = function () {
     this.defaultPrevented = true;
   };
@@ -691,6 +691,7 @@
   function EventSourcePolyfill(url, options) {
     EventTarget.call(this);
     options = options || {};
+    options.ignore401 = true;
 
     this.onopen = undefined;
     this.onmessage = undefined;
@@ -708,8 +709,8 @@
 
   function getBestXHRTransport() {
     return (XMLHttpRequest != undefined && ("withCredentials" in XMLHttpRequest.prototype)) || XDomainRequest == undefined
-      ? new XMLHttpRequest()
-      : new XDomainRequest();
+        ? new XMLHttpRequest()
+        : new XDomainRequest();
   }
 
   var isFetchSupported = fetch != undefined && Response != undefined && "body" in Response.prototype;
@@ -772,7 +773,7 @@
           });
           es.dispatchEvent(event);
           fire(es, es.onerror, event);
-          if (!event.defaultPrevented) {
+          if (!(event.defaultPrevented || options.ignore401)) {
             throwError(new Error(message));
           }
         }
@@ -989,8 +990,8 @@
   EventSourcePolyfill.OPEN = OPEN;
   EventSourcePolyfill.CLOSED = CLOSED;
   EventSourcePolyfill.prototype.withCredentials = undefined;
-  
-  var R = NativeEventSource
+
+  var R = NativeEventSource;
   if (XMLHttpRequest != undefined && (NativeEventSource == undefined || !("withCredentials" in NativeEventSource.prototype))) {
     // Why replace a native EventSource ?
     // https://bugzilla.mozilla.org/show_bug.cgi?id=444328
