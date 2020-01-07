@@ -513,41 +513,48 @@
     var controller = new AbortController();
     var signal = controller.signal;
     var textDecoder = new TextDecoder();
-    fetch(url, {
+
+    var fetchConfig = {
       headers: headers,
       credentials: withCredentials ? "include" : "same-origin",
       signal: signal,
       cache: "no-store"
-    }).then(function (response) {
-      reader = response.body.getReader();
-      onStartCallback(response.status, response.statusText, response.headers.get("Content-Type"), new HeadersWrapper(response.headers));
-      // see https://github.com/promises-aplus/promises-spec/issues/179
-      return new Promise(function (resolve, reject) {
-        var readNextChunk = function () {
-          reader.read().then(function (result) {
-            if (result.done) {
-              //Note: bytes in textDecoder are ignored
-              resolve(undefined);
-            } else {
-              var chunk = textDecoder.decode(result.value, {stream: true});
-              onProgressCallback(chunk);
-              readNextChunk();
-            }
-          })["catch"](function (error) {
-            reject(error);
+    };
+
+    fetch(url, fetchConfig)
+        .then(function (response) {
+          reader = response.body.getReader();
+          onStartCallback(response.status, response.statusText, response.headers.get("Content-Type"), new HeadersWrapper(response.headers));
+          // see https://github.com/promises-aplus/promises-spec/issues/179
+          return new Promise(function (resolve, reject) {
+            var readNextChunk = function () {
+              reader.read().then(function (result) {
+                if (result.done) {
+                  //Note: bytes in textDecoder are ignored
+                  resolve(undefined);
+                } else {
+                  var chunk = textDecoder.decode(result.value, {stream: true});
+                  onProgressCallback(chunk);
+                  readNextChunk();
+                }
+              })["catch"](function (error) {
+                reject(error);
+              });
+            };
+            readNextChunk();
           });
-        };
-        readNextChunk();
-      });
-    })["catch"](function (error) {
+        })
+        ["catch"](function (error) {
       if (error.name === "AbortError") {
         return undefined;
       } else {
         return error;
       }
-    }).then(function (error) {
-      onFinishCallback(error);
-    });
+    })
+        .then(function (error) {
+          onFinishCallback(error);
+        });
+
     return {
       abort: function () {
         if (reader != null) {
@@ -961,7 +968,20 @@
         }
       }
       try {
-        abortController = transport.open(xhr, onStart, onProgress, onFinish, requestURL, withCredentials, requestHeaders);
+        if (window['_keycloak']) {
+          window['_keycloak']
+              .updateToken(30)
+              .success(function (refreshed) {
+                if (refreshed && window['_keycloak'].token) {
+                  requestHeaders['Authorization'] = 'Bearer ' + window['_keycloak'].token;
+                }
+                abortController = transport.open(xhr, onStart, onProgress, onFinish, requestURL, withCredentials, requestHeaders);
+              })
+              .error(function () {
+                console.log('Failed to refresh token');
+                abortController = transport.open(xhr, onStart, onProgress, onFinish, requestURL, withCredentials, requestHeaders);
+              });
+        }
       } catch (error) {
         close();
         throw error;
