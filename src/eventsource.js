@@ -968,17 +968,23 @@
         }
       }
       try {
+
+        let updateKeycloakRequestToken = function(headers) {
+          if (window['_keycloak'] && window['_keycloak'].token) {
+            headers['Authorization'] = 'Bearer ' + window['_keycloak'].token;
+          }
+        };
+
         if (window['_keycloak']) {
           window['_keycloak']
               .updateToken(30)
               .success(function (refreshed) {
-                if (refreshed && window['_keycloak'].token) {
-                  requestHeaders['Authorization'] = 'Bearer ' + window['_keycloak'].token;
-                }
+                updateKeycloakRequestToken(requestHeaders);
                 abortController = transport.open(xhr, onStart, onProgress, onFinish, requestURL, withCredentials, requestHeaders);
               })
               .error(function () {
                 console.log('Failed to refresh token');
+                updateKeycloakRequestToken(requestHeaders);
                 abortController = transport.open(xhr, onStart, onProgress, onFinish, requestURL, withCredentials, requestHeaders);
               });
         }
