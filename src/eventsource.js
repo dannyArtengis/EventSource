@@ -968,13 +968,11 @@
         }
       }
       try {
-
-        let updateKeycloakRequestToken = function(headers) {
+        var updateKeycloakRequestToken = function(headers) {
           if (window['_keycloak'] && window['_keycloak'].token) {
             headers['Authorization'] = 'Bearer ' + window['_keycloak'].token;
           }
         };
-
         if (window['_keycloak']) {
           window['_keycloak']
               .updateToken(30)
