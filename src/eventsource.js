@@ -968,7 +968,7 @@
         }
       }
       try {
-        var updateKeycloakRequestToken = function(headers) {
+		var updateKeycloakRequestToken = function(headers) {
           if (window['_keycloak'] && window['_keycloak'].token) {
             headers['Authorization'] = 'Bearer ' + window['_keycloak'].token;
           }
@@ -985,7 +985,11 @@
                 updateKeycloakRequestToken(requestHeaders);
                 abortController = transport.open(xhr, onStart, onProgress, onFinish, requestURL, withCredentials, requestHeaders);
               });
-        }
+        } else {
+		  updateKeycloakRequestToken(requestHeaders);
+          abortController = transport.open(xhr, onStart, onProgress, onFinish, requestURL, withCredentials, requestHeaders);
+		}
+        
       } catch (error) {
         close();
         throw error;
